@@ -8,7 +8,10 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_bcrypt import Bcrypt
 from models import db, User, Complaint, ComplaintUpdate, Notice
 from werkzeug.utils import secure_filename
-from fpdf import FPDF
+
+# Expensive imports moved inside routes to speed up cold starts
+# from fpdf import FPDF
+
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf'}
 
@@ -60,23 +63,24 @@ def create_app():
     with app.app_context():
         # db.drop_all() # Commented out to prevent data loss on every restart
         db.create_all()
+        # Optimize seeding: check if any users exist first
 
-        staff_data = [
-            ('JD', 'jd@cccs.edu', 'jd@123', 'complaint_staff', 'Maintenance'),
-            ('RK', 'rk@cccs.edu', 'rk@123', 'complaint_staff', 'Facilities'),
-            ('SK', 'sk@cccs.edu', 'sk@123', 'complaint_staff', 'Academic Affairs'),
-            ('JK', 'jk@cccs.edu', 'jk@123', 'notice_staff', 'Administration'),
-            ('Keerthu (Principal)', 'keerthu@cccs.edu', 'k@123', 'principal', 'Administration'),
-            ('Admin', 'admin@cccs.edu', 'admin@123', 'admin', 'Management')
-        ]
+        if User.query.first() is None:
+            staff_data = [
+                ('JD', 'jd@cccs.edu', 'jd@123', 'complaint_staff', 'Maintenance'),
+                ('RK', 'rk@cccs.edu', 'rk@123', 'complaint_staff', 'Facilities'),
+                ('SK', 'sk@cccs.edu', 'sk@123', 'complaint_staff', 'Academic Affairs'),
+                ('JK', 'jk@cccs.edu', 'jk@123', 'notice_staff', 'Administration'),
+                ('Keerthu (Principal)', 'keerthu@cccs.edu', 'k@123', 'principal', 'Administration'),
+                ('Admin', 'admin@cccs.edu', 'admin@123', 'admin', 'Management')
+            ]
 
-        for name, email, password, role, dept in staff_data:
-            if not User.query.filter_by(email=email).first():
-                hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+            for name, email, password, role, dept in staff_data:
+                hashed = bcrypt.generate_password_hash(password, 10).decode('utf-8')
                 user = User(name=name, email=email, password=hashed, role=role, department=dept)
                 db.session.add(user)
+            db.session.commit()
 
-        db.session.commit()
 
     # ================================================================== #
     #  COMMON ROUTES                                                       #
@@ -588,9 +592,11 @@ def create_app():
     def export_complaints_pdf():
         if current_user.role != 'principal':
             abort(403)
+        from fpdf import FPDF
         complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
         
         pdf = FPDF()
+
         pdf.add_page()
         pdf.set_font("helvetica", "B", 16)
         pdf.cell(0, 10, "CCCS - Complaints Report", 0, 1, 'C')
@@ -647,10 +653,22 @@ def create_app():
         complaints = Complaint.query.all()
         return render_template('admin/dashboard.html', users=users, complaints=complaints)
 
+    @app.route('/api/ping')
+    def ping():
+        return {"status": "ok", "message": "CCCS API is running"}
+
     return app
 
 
-app = create_app()
+
+import sys
+
+try:
+    app = create_app()
+except Exception as e:
+    print(f"CRITICAL: Failed to create app: {e}", file=sys.stderr)
+    raise
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
