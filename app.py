@@ -132,9 +132,12 @@ def create_app():
     @app.route('/logout')
     @login_required
     def logout():
+        from flask import session
         logout_user()
+        session.clear() # Completely clear the session
         flash('You have been logged out.', 'info')
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
+
 
     @app.route('/notices')
     @login_required
@@ -162,7 +165,19 @@ def create_app():
                                departments=departments,
                                selected_dept=dept_filter)
 
+    @app.after_request
+    def add_header(response):
+        """
+        Add headers to both force latest IE rendering engine or lately Edge,
+        and also to cache the rendered page for 0 seconds.
+        """
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+
     @app.route('/register', methods=['GET', 'POST'])
+
     def register():
         if current_user.is_authenticated:
             return _redirect_by_role()
