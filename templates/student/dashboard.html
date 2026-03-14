@@ -84,6 +84,13 @@
                             <td><span class="text-secondary fw-medium">#{{ complaint.complaint_id }}</span></td>
                             <td class="fw-bold text-dark">
                                 {{ complaint.title }}
+                                {% if complaint.image %}
+                                <a href="{{ url_for('uploaded_file', filename=complaint.image) }}" target="_blank">
+                                    <img src="{{ url_for('uploaded_file', filename=complaint.image) }}" 
+                                         class="rounded border shadow-sm ms-2" style="width: 20px; height: 20px; object-fit: cover;" 
+                                         title="View Attachment" alt="Evidence">
+                                </a>
+                                {% endif %}
                                 {% if complaint.anonymous %}<span class="badge bg-secondary ms-1 small">Anon</span>{% endif %}
                             </td>
                             <td>{{ complaint.category }}</td>
@@ -135,10 +142,11 @@
                         <span class="fw-bold small">{{ notice.title }}</span>
                         <div class="d-flex gap-2 align-items-center">
                             {% if notice.file_attachment %}
-                            <a href="{{ url_for('static', filename='uploads/' + notice.file_attachment) }}" target="_blank" class="text-primary small" title="View Attachment">
+                            <a href="{{ url_for('uploaded_file', filename=notice.file_attachment) }}" target="_blank" class="text-primary small" title="View Attachment">
                                 <i class="fas fa-paperclip"></i>
                             </a>
                             {% endif %}
+
                             <small class="text-secondary">{{ notice.date.strftime('%d %b') }}</small>
                         </div>
                     </div>

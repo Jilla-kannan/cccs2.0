@@ -3,7 +3,8 @@ import secrets
 import csv
 from io import StringIO, BytesIO
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, flash, request, abort, make_response, send_file
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, make_response, send_file, send_from_directory
+
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from models import db, User, Complaint, ComplaintUpdate, Notice
@@ -17,6 +18,9 @@ ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Detect if running on Vercel
+IS_VERCEL = "VERCEL" in os.environ
 
 def save_upload(file_obj, upload_folder):
     """Save an uploaded file and return its stored filename, or None."""
@@ -33,17 +37,18 @@ def save_upload(file_obj, upload_folder):
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'cccs_secret_key_2024'
-    # Detect if running on Vercel
-    IS_VERCEL = "VERCEL" in os.environ
-    
     if IS_VERCEL:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/site.db'
         app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-        app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+        app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
     
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    # Ensure upload folder exists
+    try:
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    except Exception as e:
+        print(f"Warning: Could not create upload folder {app.config['UPLOAD_FOLDER']}: {e}")
 
     db.init_app(app)
     bcrypt = Bcrypt(app)
@@ -114,6 +119,21 @@ def create_app():
         elif current_user.role == 'admin':
             return redirect(url_for('admin_dashboard'))
         return redirect(url_for('login'))
+
+    @app.route('/uploads/<filename>')
+    def uploaded_file(filename):
+        # 1. Try configured UPLOAD_FOLDER (usually /tmp on Vercel)
+        if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        
+        # 2. Try static/uploads (fallback for deployed files)
+        static_uploads = os.path.join(app.root_path, 'static', 'uploads')
+        if os.path.exists(os.path.join(static_uploads, filename)):
+            return send_from_directory(static_uploads, filename)
+            
+        # 3. Last resort fallback
+        return abort(404)
+
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():

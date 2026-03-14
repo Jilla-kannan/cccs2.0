@@ -23,7 +23,16 @@
             <tbody>
                 {% for complaint in complaints %}
                 <tr>
-                    <td class="fw-bold text-dark">{{ complaint.title }}</td>
+                    <td class="fw-bold text-dark">
+                        {{ complaint.title }}
+                        {% if complaint.image %}
+                        <a href="{{ url_for('uploaded_file', filename=complaint.image) }}" target="_blank">
+                            <img src="{{ url_for('uploaded_file', filename=complaint.image) }}" 
+                                 class="rounded border shadow-sm ms-2" style="width: 20px; height: 20px; object-fit: cover;" 
+                                 title="View Attachment" alt="Evidence">
+                        </a>
+                        {% endif %}
+                    </td>
                     <td>{{ complaint.category|capitalize }}</td>
                     <td>
                         {% set sc = complaint.status %}

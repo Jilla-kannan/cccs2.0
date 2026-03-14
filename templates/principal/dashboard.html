@@ -110,7 +110,16 @@
                         <tr>
                             <td><span class="text-secondary fw-medium">#{{ complaint.complaint_id }}</span></td>
                             <td class="fw-bold text-dark" style="max-width:180px;">
-                                <span class="text-truncate d-block">{{ complaint.title }}</span>
+                                <span class="text-truncate d-block">
+                                    {{ complaint.title }}
+                                    {% if complaint.image %}
+                                    <a href="{{ url_for('uploaded_file', filename=complaint.image) }}" target="_blank">
+                                        <img src="{{ url_for('uploaded_file', filename=complaint.image) }}" 
+                                             class="rounded border shadow-sm ms-1" style="width: 20px; height: 20px; object-fit: cover;" 
+                                             title="View Attachment" alt="Evidence">
+                                    </a>
+                                    {% endif %}
+                                </span>
                             </td>
                             <td>{{ complaint.category }}</td>
                             <td>
@@ -233,8 +242,9 @@
                         <span class="fw-bold small">{{ notice.title }}</span>
                         <div class="d-flex gap-2">
                            {% if notice.file_attachment %}
-                           <a href="{{ url_for('static', filename='uploads/' + notice.file_attachment) }}" target="_blank" class="text-primary small"><i class="fas fa-paperclip"></i></a>
+                           <a href="{{ url_for('uploaded_file', filename=notice.file_attachment) }}" target="_blank" class="text-primary small"><i class="fas fa-paperclip"></i></a>
                            {% endif %}
+
                            <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Delete?')">
                                <button type="submit" class="border-0 bg-transparent text-danger p-0 small"><i class="fas fa-trash"></i></button>
                            </form>

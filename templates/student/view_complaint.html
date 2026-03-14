@@ -53,9 +53,10 @@
             {% if complaint.image %}
             <hr>
             <h6 class="fw-bold text-secondary text-uppercase mb-2">Attached Evidence</h6>
-            <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+            <img src="{{ url_for('uploaded_file', filename=complaint.image) }}"
                  class="img-fluid rounded-3 shadow-sm" style="max-height:300px;" alt="Evidence">
             {% endif %}
+
         </div>
 
         <!-- Timeline of Updates -->
@@ -87,12 +88,13 @@
                             </div>
                             {% if update.proof_file %}
                             <div class="mt-2">
-                                <a href="{{ url_for('static', filename='uploads/' + update.proof_file) }}" 
+                                <a href="{{ url_for('uploaded_file', filename=update.proof_file) }}" 
                                    target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
                                     <i class="fas fa-paperclip me-1"></i>View Proof
                                 </a>
                             </div>
                             {% endif %}
+
                         </div>
                     </div>
                 </div>
