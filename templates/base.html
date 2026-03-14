@@ -15,21 +15,23 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .home-bg-logo {
+        .bg-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 700px;
-            height: 700px;
+            width: 80vw;
+            max-width: 800px;
+            aspect-ratio: 1/1;
             background-image: url("{{ url_for('static', filename='cccslogo.png') }}");
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
-            opacity: 0.80;
-            z-index: -1;
+            opacity: 0.08;
+            z-index: 0;
             pointer-events: none;
         }
+
     </style>
 </head>
 
@@ -169,8 +171,10 @@
     </div>
 
     {% else %}
-    <!-- Guest: Login page only -->
+    <!-- Guest -->
+    <div class="bg-watermark"></div>
     <div class="container mt-4">
+
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
