@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <div>
+        <h3 class="fw-bold mb-0">Update Complaint #{{ complaint.complaint_id }}</h3>
+        <span class="text-secondary small">{{ complaint.title }}</span>
+    </div>
+    <a href="{{ url_for('staff_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-medium">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<div class="row g-4 fade-in">
+    <!-- Update Form -->
+    <div class="col-xl-7">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-edit me-2 text-primary"></i>Add Progress Update</h5>
+            <form method="POST" action="" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="status" class="form-label fw-bold">Update Status</label>
+                    <select class="form-select bg-light border-0 shadow-none" id="status" name="status" required>
+                        <option value="under_review" {% if complaint.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                        <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="escalated" {% if complaint.status == 'escalated' %}selected{% endif %}>Escalate to Principal</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="message" class="form-label fw-bold">Response / Progress Message <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0 shadow-none" id="message" name="message"
+                              rows="4" required placeholder="Describe what action was taken..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="proof_file" class="form-label fw-bold">
+                        Upload Resolution Proof <span class="text-secondary fw-normal">(Optional – JPG, PNG, PDF)</span>
+                    </label>
+                    <input class="form-control bg-light border-0 shadow-none" type="file"
+                           id="proof_file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary fw-bold py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-save me-2"></i>Save Update
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Previous Updates -->
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-history me-2 text-secondary"></i>Update History</h5>
+            {% if complaint.updates %}
+            {% for update in complaint.updates|reverse %}
+            <div class="d-flex gap-3 mb-4">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:34px;height:34px;">
+                    <i class="fas fa-user-tie small"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="card bg-light border-0 p-3 rounded-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold">{{ update.updater.name }}</span>
+                            <small class="text-secondary">{{ update.timestamp.strftime('%d %b, %I:%M %p') }}</small>
+                        </div>
+                        <p class="mb-1">{{ update.message }}</p>
+                        {% set us = update.status %}
+                        {% if us == 'assigned' %}<span class="badge bg-primary">Assigned</span>
+                        {% elif us == 'under_review' %}<span class="badge bg-info">Under Review</span>
+                        {% elif us == 'resolved' %}<span class="badge bg-success">Resolved</span>
+                        {% elif us == 'escalated' %}<span class="badge bg-danger">Escalated</span>
+                        {% endif %}
+                        {% if update.proof_file %}
+                        <div class="mt-2">
+                            <a href="{{ url_for('static', filename='uploads/' + update.proof_file) }}"
+                               target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="fas fa-paperclip me-1"></i>View Proof
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-secondary text-center py-3">No updates added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Complaint Detail Card -->
+    <div class="col-xl-5">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Complaint Details</h6>
+            <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                <li>
+                    <span class="text-secondary small">ID</span>
+                    <p class="fw-bold text-primary mb-0">#{{ complaint.complaint_id }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Title</span>
+                    <p class="fw-semibold mb-0">{{ complaint.title }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Category</span>
+                    <p class="fw-semibold mb-0">{{ complaint.category|capitalize }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Priority</span>
+                    <p class="fw-bold mb-0">
+                        {% if complaint.priority == 'high' %}<span class="text-danger">High</span>
+                        {% elif complaint.priority == 'medium' %}<span class="text-warning">Medium</span>
+                        {% else %}<span class="text-info">Low</span>{% endif %}
+                    </p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Submitted</span>
+                    <p class="fw-semibold mb-0">{{ complaint.created_at.strftime('%d %b %Y') }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Student Information</span>
+                    <p class="fw-bold mb-0">
+                        {% if complaint.author %}
+                            {% if complaint.anonymous %}
+                                <span class="text-secondary italic"><i class="fas fa-user-secret me-1"></i>Anonymous</span>
+                            {% else %}
+                                {{ complaint.author.name }}
+                                <br>
+                                <small class="text-secondary fw-normal">
+                                    ID: #{{ complaint.author.id }} | {{ complaint.author.department }}<br>
+                                    Year: {{ complaint.author.year or 'N/A' }} | Phone: {{ complaint.author.phone or 'N/A' }}<br>
+                                    Email: {{ complaint.author.email }}
+                                </small>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted small">Unknown</span>
+                        {% endif %}
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Description</h6>
+            <p class="text-dark mb-0">{{ complaint.description }}</p>
+
+            {% if complaint.image %}
+            <hr>
+            <h6 class="fw-bold text-secondary small text-uppercase">Student Evidence</h6>
+            <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+                 class="img-fluid rounded-3 shadow-sm mt-2" style="max-height:200px;" alt="Evidence">
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

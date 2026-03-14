@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold mb-0">Submit a Complaint</h3>
+    <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-medium">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<div class="row fade-in">
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0 p-4 p-md-5">
+            <form method="POST" action="{{ url_for('submit_complaint') }}" enctype="multipart/form-data">
+                <!-- Title -->
+                <div class="mb-4">
+                    <label for="title" class="form-label fw-bold">Complaint Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg bg-light border-0 shadow-none"
+                           id="title" name="title" required placeholder="e.g. WiFi not working in Block A">
+                </div>
+
+                <!-- Category & Priority -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="category" class="form-label fw-bold">Category <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg bg-light border-0 shadow-none mb-2" id="category" name="category" required onchange="toggleManualCategory()">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Hostel">Hostel</option>
+                            <option value="Facilities">Facilities</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        
+                        <div id="manual_category_div" style="display: none;">
+                            <label for="manual_category" class="form-label fw-bold small text-secondary">Please specify category</label>
+                            <input type="text" class="form-control bg-light border-0 shadow-none" 
+                                   id="manual_category" name="manual_category" placeholder="Enter custom category">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <label for="priority" class="form-label fw-bold">Priority <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg bg-light border-0 shadow-none" id="priority" name="priority" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <script>
+                    function toggleManualCategory() {
+                        const select = document.getElementById('category');
+                        const manualDiv = document.getElementById('manual_category_div');
+                        const manualInput = document.getElementById('manual_category');
+                        
+                        if (select.value === 'Other') {
+                            manualDiv.style.display = 'block';
+                            manualInput.required = true;
+                        } else {
+                            manualDiv.style.display = 'none';
+                            manualInput.required = false;
+                        }
+                    }
+                </script>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label for="description" class="form-label fw-bold">Detailed Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0 shadow-none"
+                              id="description" name="description" rows="5" required
+                              placeholder="Please provide all relevant details, location, time, etc."></textarea>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="mb-4">
+                    <label for="image" class="form-label fw-bold">Attach Evidence <span class="text-secondary fw-normal">(Optional – JPG, PNG)</span></label>
+                    <input class="form-control bg-light border-0 shadow-none"
+                           type="file" id="image" name="image" accept=".jpg,.jpeg,.png">
+                </div>
+
+                <!-- Anonymous Toggle -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center bg-light p-3 rounded-3 gap-3">
+                        <i class="fas fa-user-secret fa-2x text-secondary"></i>
+                        <div class="flex-grow-1">
+                            <label class="fw-bold mb-0" for="anonymous">Submit Anonymously</label>
+                            <p class="small text-secondary mb-0">Your name will be hidden from other students.</p>
+                        </div>
+                        <div class="form-check form-switch fs-4 mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="anonymous" name="anonymous">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-3 mt-5">
+                    <a href="{{ url_for('student_dashboard') }}" class="btn btn-light fw-medium px-4 py-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary fw-bold px-5 py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-paper-plane me-2"></i>Submit Complaint
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="col-xl-4 mt-4 mt-xl-0">
+        <div class="card shadow-sm border-0 p-4 bg-primary text-white h-100">
+            <h5 class="fw-bold mb-4"><i class="fas fa-lightbulb me-2 text-warning"></i>Tips for a Fast Resolution</h5>
+            <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-check-circle mt-1 me-3 text-success"></i>
+                    <span>Be specific about the location (e.g. "Lab 3", "Hostel Block B").</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-check-circle mt-1 me-3 text-success"></i>
+                    <span>Provide clear and concise details in the description.</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-check-circle mt-1 me-3 text-success"></i>
+                    <span>Attach photos whenever possible as proof.</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-check-circle mt-1 me-3 text-success"></i>
+                    <span>Save your Complaint ID to track progress later.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

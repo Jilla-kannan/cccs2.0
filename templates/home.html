@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block guest_content %}
+<div class="home-bg-logo"></div>
+<div class="row align-items-center min-vh-75 py-5 fade-in">
+    <div class="col-lg-6 mb-5 mb-lg-0 text-center text-lg-start">
+        <h1 class="display-4 fw-bold mb-4 text-dark">
+            Modernize your <span class="text-primary">Campus Experience</span>
+        </h1>
+        <p class="lead text-secondary mb-5 px-3 px-lg-0">
+            A centralized platform for students to report issues, track complaints, and stay updated with notices. Fast, transparent, and easy to use.
+        </p>
+        <div class="d-flex justify-content-center justify-content-lg-start gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">Get Started</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-dark btn-lg rounded-pill px-5 py-3 shadow-sm">Login</a>
+        </div>
+        
+        <div class="row mt-5 pt-4 text-start justify-content-center justify-content-lg-start">
+            <div class="col-sm-5 mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary-soft stats-icon me-3">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Fast</h4>
+                        <small class="text-secondary">Instant Reporting</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success-soft stats-icon me-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Track</h4>
+                        <small class="text-secondary">Live Updates</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="position-relative">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-4">
+                <div class="p-4 bg-white">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-3 shadow-sm">
+                                <small class="text-secondary fw-bold text-uppercase">Total Complaints</small>
+                                <h3 class="mb-0 fw-bold mt-1 text-primary">{{ total_count or '0' }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-3 shadow-sm">
+                                <small class="text-secondary fw-bold text-uppercase">Resolved</small>
+                                <h3 class="mb-0 fw-bold mt-1 text-success">{{ resolved_count or '0' }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3 d-flex align-items-center">
+                        <i class="fas fa-bullhorn text-warning me-2"></i>Recent Notices
+                    </h6>
+                    <div class="d-flex flex-column gap-3">
+                        {% if notices %}
+                            {% for notice in notices %}
+                            <div class="d-flex align-items-center border p-3 rounded-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-bold">{{ notice.title }}</h6>
+                                    <small class="text-secondary">{{ notice.date.strftime('%d %b %Y') }}</small>
+                                </div>
+                                <div class="badge-group d-flex flex-column align-items-end gap-1">
+                                    <span class="badge bg-primary-soft px-3 py-2 rounded-pill text-capitalize">{{ notice.category }}</span>
+                                    {% if notice.file_attachment %}
+                                    <a href="{{ url_for('static', filename='uploads/' + notice.file_attachment) }}" target="_blank" class="text-primary small text-decoration-none">
+                                        <i class="fas fa-paperclip"></i> View
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-secondary small text-center py-3">No recent notices.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="p-4 bg-white">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center">
+                        <i class="fas fa-history text-info me-2"></i>Recent Activity
+                    </h6>
+                    <div class="d-flex flex-column gap-2">
+                        {% if complaints %}
+                            {% for comp in complaints %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                <div>
+                                    <h6 class="mb-0 small fw-bold">#{{ comp.complaint_id }} - {{ comp.title }}</h6>
+                                    <small class="text-secondary smaller">{{ comp.category|capitalize }}</small>
+                                </div>
+                                <span class="badge bg-light text-dark smaller">{{ comp.status }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-secondary small text-center py-2">No active complaints.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

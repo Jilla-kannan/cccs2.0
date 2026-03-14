@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-12 mb-4">
+        <h3 class="fw-bold">Notice Staff Dashboard</h3>
+        <p class="text-secondary">Welcome, {{ current_user.name }}. You can post campus notices, alerts, and circulars here.</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm p-3 bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="small text-uppercase opacity-75">Total Notices</h6>
+                    <h3 class="fw-bold mb-0">{{ notices|length }}</h3>
+                </div>
+                <i class="fas fa-bullhorn fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm p-3 bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="small text-uppercase opacity-75">Total Students</h6>
+                    <h3 class="fw-bold mb-0">{{ students|length }}</h3>
+                </div>
+                <i class="fas fa-users fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Post Notice Form -->
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">Post New Notice</h5>
+            <form action="{{ url_for('notice_staff_post_notice') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-medium">Notice Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Holiday Announcement">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label for="category" class="form-label fw-medium">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="alert">Alert</option>
+                            <option value="circular">Circular</option>
+                            <option value="campus_instruction">Campus Instruction</option>
+                            <option value="event">Event</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label for="priority" class="form-label fw-medium">Priority</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="normal">Normal</option>
+                            <option value="important">Important</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label fw-medium">Notice Content</label>
+                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="attachment" class="form-label fw-medium">Attachment <small class="text-secondary">(Optional)</small></label>
+                    <input type="file" class="form-control" id="attachment" name="attachment">
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary rounded-pill fw-bold">Post Notice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Notices -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">Recent Notices</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Priority</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for notice in notices %}
+                        <tr>
+                            <td>{{ notice.date.strftime('%d %b') }}</td>
+                            <td>
+                                <span class="fw-medium d-block text-truncate" style="max-width: 150px;">{{ notice.title }}</span>
+                                <span class="badge bg-light text-dark smaller">{{ notice.category|replace('_', ' ')|capitalize }}</span>
+                            </td>
+                            <td>
+                                {% if notice.priority == 'urgent' %}
+                                <span class="badge bg-danger">Urgent</span>
+                                {% elif notice.priority == 'important' %}
+                                <span class="badge bg-warning">Important</span>
+                                {% else %}
+                                <span class="badge bg-info">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    {% if notice.file_attachment %}
+                                    <a href="{{ url_for('static', filename='uploads/' + notice.file_attachment) }}" target="_blank" class="btn btn-sm btn-light border" title="View Attachment">
+                                        <i class="fas fa-paperclip"></i>
+                                    </a>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Delete this notice?')">
+                                        <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

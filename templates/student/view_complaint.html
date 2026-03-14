@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <div>
+        <h3 class="fw-bold mb-0">Complaint #{{ complaint.complaint_id }}</h3>
+        <span class="text-secondary small">Submitted on {{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+    </div>
+    <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-medium">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<div class="row g-4 fade-in">
+    <!-- Complaint Details -->
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="fw-bold mb-0">{{ complaint.title }}</h5>
+                {% set sc = complaint.status %}
+                {% if sc == 'pending' %}
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Pending</span>
+                {% elif sc == 'assigned' %}
+                    <span class="badge bg-primary rounded-pill px-3 py-2">Assigned</span>
+                {% elif sc == 'in_progress' %}
+                    <span class="badge bg-info rounded-pill px-3 py-2">In Progress</span>
+                {% elif sc == 'resolved' %}
+                    <span class="badge bg-success rounded-pill px-3 py-2">Resolved</span>
+                {% elif sc == 'escalated' %}
+                    <span class="badge bg-danger rounded-pill px-3 py-2">Escalated</span>
+                {% endif %}
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-6">
+                    <span class="text-secondary small">Category</span>
+                    <p class="fw-semibold mb-0">{{ complaint.category }}</p>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-secondary small">Submitted By</span>
+                    <p class="fw-semibold mb-0">
+                        {% if complaint.anonymous %}
+                            <i class="fas fa-user-secret me-1"></i>Anonymous
+                        {% else %}
+                            {{ current_user.name }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <hr>
+            <h6 class="fw-bold text-secondary text-uppercase mb-2">Description</h6>
+            <p class="text-dark">{{ complaint.description }}</p>
+
+            {% if complaint.image %}
+            <hr>
+            <h6 class="fw-bold text-secondary text-uppercase mb-2">Attached Evidence</h6>
+            <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+                 class="img-fluid rounded-3 shadow-sm" style="max-height:300px;" alt="Evidence">
+            {% endif %}
+        </div>
+
+        <!-- Timeline of Updates -->
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-history me-2 text-primary"></i>Progress Updates</h5>
+            {% if complaint.updates %}
+            <div class="timeline">
+                {% for update in complaint.updates %}
+                <div class="timeline-item d-flex gap-3 mb-4">
+                    <div class="timeline-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:36px;height:36px;">
+                        <i class="fas fa-comment-dots small"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="card bg-light border-0 p-3 rounded-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">{{ update.updater.name }}</span>
+                                <small class="text-secondary">{{ update.timestamp.strftime('%d %b %Y, %I:%M %p') }}</small>
+                            </div>
+                            <p class="mb-1 text-dark">{{ update.message }}</p>
+                            <div>
+                                {% set us = update.status %}
+                                {% if us == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                                {% elif us == 'assigned' %}<span class="badge bg-primary">Assigned</span>
+                                {% elif us == 'in_progress' %}<span class="badge bg-info">In Progress</span>
+                                {% elif us == 'resolved' %}<span class="badge bg-success">Resolved</span>
+                                {% elif us == 'escalated' %}<span class="badge bg-danger">Escalated</span>
+                                {% endif %}
+                            </div>
+                            {% if update.proof_file %}
+                            <div class="mt-2">
+                                <a href="{{ url_for('static', filename='uploads/' + update.proof_file) }}" 
+                                   target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    <i class="fas fa-paperclip me-1"></i>View Proof
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-secondary py-4">
+                <i class="fas fa-hourglass-start fa-2x mb-3 d-block"></i>
+                No updates yet. Your complaint is being reviewed.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-xl-4">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Complaint Info</h6>
+            <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+                <li>
+                    <span class="text-secondary small">Complaint ID</span>
+                    <p class="fw-bold mb-0 text-primary">#{{ complaint.complaint_id }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Submitted</span>
+                    <p class="fw-semibold mb-0">{{ complaint.created_at.strftime('%d %b %Y') }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Last Updated</span>
+                    <p class="fw-semibold mb-0">{{ complaint.updated_at.strftime('%d %b %Y') }}</p>
+                </li>
+                <li>
+                    <span class="text-secondary small">Assigned Staff</span>
+                    <p class="fw-semibold mb-0">
+                        {% if complaint.assignee %}
+                            {{ complaint.assignee.name }}
+                        {% else %}
+                            <span class="text-secondary">Not assigned yet</span>
+                        {% endif %}
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

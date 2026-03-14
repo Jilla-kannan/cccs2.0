@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-12 mb-4">
+        <h3 class="fw-bold">Administrator Dashboard</h3>
+        <p class="text-secondary">System-wide overview of users and complaints.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm p-3 bg-dark text-white text-center">
+            <h6 class="small text-uppercase opacity-75">Total Users</h6>
+            <h3 class="fw-bold mb-0">{{ users|length }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm p-3 bg-primary text-white text-center">
+            <h6 class="small text-uppercase opacity-75">Total Complaints</h6>
+            <h3 class="fw-bold mb-0">{{ complaints|length }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Management Table -->
+    <div class="col-lg-12 mb-4">
+        <div class="card border-0 shadow-sm p-4">
+            <h5 class="fw-bold mb-4">All Registered Users</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://ui-avatars.com/api/?name={{ user.name }}&background=random" class="rounded-circle me-2" width="30">
+                                    <span class="fw-medium">{{ user.name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td><span class="badge bg-secondary text-capitalize">{{ user.role|replace('_', ' ') }}</span></td>
+                            <td>{{ user.department or '-' }}</td>
+                            <td class="small text-secondary">{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

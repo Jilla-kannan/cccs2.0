@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h3 class="fw-bold mb-0">Principal Dashboard</h3>
+    <div class="d-flex gap-2">
+        <!-- Analytics Button -->
+        <a href="{{ url_for('principal_analytics') }}" class="btn btn-outline-info shadow-sm rounded-pill px-4 fw-medium">
+            <i class="fas fa-chart-pie me-2"></i>Analytics
+        </a>
+        <!-- Export Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-outline-primary shadow-sm rounded-pill px-4 fw-medium dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3 mt-2">
+                <li><a class="dropdown-item py-2" href="{{ url_for('export_complaints_csv') }}"><i class="fas fa-file-csv me-2 text-success"></i>Export as CSV</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('export_complaints_pdf') }}"><i class="fas fa-file-pdf me-2 text-danger"></i>Export as PDF</a></li>
+            </ul>
+        </div>
+        <!-- Post Notice Button -->
+        <button class="btn btn-success shadow-sm rounded-pill px-4 fw-medium" data-bs-toggle="modal" data-bs-target="#noticeModal">
+            <i class="fas fa-bullhorn me-2"></i>Post Notice
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4 fade-in">
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h6 class="text-secondary fw-bold text-uppercase mb-2">Total Complaints</h6>
+                    <h2 class="fw-bold mb-0">{{ total }}</h2>
+                </div>
+                <div class="bg-primary-soft stats-icon"><i class="fas fa-chart-bar"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h6 class="text-secondary fw-bold text-uppercase mb-2">Pending / New</h6>
+                    <h2 class="fw-bold mb-0 text-warning">{{ pending }}</h2>
+                </div>
+                <div class="bg-warning-soft stats-icon"><i class="fas fa-clock"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h6 class="text-secondary fw-bold text-uppercase mb-2">Escalated</h6>
+                    <h2 class="fw-bold mb-0 text-danger">{{ escalated }}</h2>
+                </div>
+                <div class="bg-danger-soft stats-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <div class="card shadow-sm border-0 h-100 p-4">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h6 class="text-secondary fw-bold text-uppercase mb-2">Resolved</h6>
+                    <h2 class="fw-bold mb-0 text-success">{{ resolved }}</h2>
+                </div>
+                <div class="bg-success-soft stats-icon"><i class="fas fa-check-circle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3">
+        <div class="card shadow-sm border-0 h-100 p-4 border-start border-4 border-primary">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <h6 class="text-secondary fw-bold text-uppercase mb-2">Total Students</h6>
+                    <h2 class="fw-bold mb-0 text-primary">{{ student_count }}</h2>
+                    <a href="{{ url_for('view_all_students') }}" class="smaller text-decoration-none">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="bg-primary text-white stats-icon"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- All Complaints + Notices -->
+<div class="row g-4 fade-in">
+    <!-- Complaints Table -->
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-list-alt me-2 text-primary"></i>All Complaints</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Student</th>
+                            <th>Assigned To</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                        <tr>
+                            <td><span class="text-secondary fw-medium">#{{ complaint.complaint_id }}</span></td>
+                            <td class="fw-bold text-dark" style="max-width:180px;">
+                                <span class="text-truncate d-block">{{ complaint.title }}</span>
+                            </td>
+                            <td>{{ complaint.category }}</td>
+                            <td>
+                                {% if complaint.author %}
+                                    <span class="d-flex align-items-center">
+                                        {% if complaint.anonymous %}
+                                            <span class="text-secondary italic"><i class="fas fa-user-secret me-1"></i>Anonymous</span>
+                                        {% else %}
+                                            {{ complaint.author.name }}
+                                        {% endif %}
+                                    </span>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if complaint.assignee %}
+                                    <span class="small fw-medium">{{ complaint.assignee.name }}</span>
+                                {% else %}
+                                    <span class="text-secondary small">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set sc = complaint.status %}
+                                {% if sc == 'submitted' %}<span class="badge bg-warning text-dark rounded-pill px-2">Submitted</span>
+                                {% elif sc == 'assigned' %}<span class="badge bg-info text-white rounded-pill px-2">Assigned</span>
+                                {% elif sc == 'under_review' %}<span class="badge bg-primary rounded-pill px-2">Under Review</span>
+                                {% elif sc == 'resolved' %}<span class="badge bg-success rounded-pill px-2">Resolved</span>
+                                {% elif sc == 'escalated' %}<span class="badge bg-danger rounded-pill px-2">Escalated</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{{ url_for('principal_view_complaint', complaint_id=complaint.id) }}"
+                                       class="btn btn-sm btn-light border rounded-circle shadow-sm" title="View">
+                                        <i class="fas fa-eye text-primary"></i>
+                                    </a>
+                                    
+                                    {% if complaint.status != 'resolved' %}
+                                    <button class="btn btn-sm btn-light border rounded-circle shadow-sm"
+                                            title="Assign Staff" data-bs-toggle="modal"
+                                            data-bs-target="#assignModal{{ complaint.id }}">
+                                        <i class="fas fa-user-check text-success"></i>
+                                    </button>
+                                    {% endif %}
+
+                                    <form method="POST" action="{{ url_for('delete_complaint', complaint_id=complaint.id) }}"
+                                          style="display:inline;" onsubmit="return confirm('Truly delete this complaint?')">
+                                        <button type="submit" class="btn btn-sm btn-light border rounded-circle shadow-sm" title="Delete">
+                                            <i class="fas fa-trash text-danger"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                No complaints submitted yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (moved outside table for better reliability) -->
+    {% for complaint in complaints %}
+    <div class="modal fade" id="assignModal{{ complaint.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Assign Complaint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary">Assign <strong>#{{ complaint.complaint_id }}</strong> – {{ complaint.title }}</p>
+                    <form method="POST" action="{{ url_for('assign_complaint', complaint_id=complaint.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Select Staff Member</label>
+                            <select name="staff_id" class="form-select" required>
+                                <option value="" disabled selected>Choose staff...</option>
+                                {% for staff in staff_list %}
+                                <option value="{{ staff.id }}"
+                                    {% if complaint.assigned_staff == staff.id %}selected{% endif %}>
+                                    {{ staff.name }} – {{ staff.department or 'Staff' }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary rounded-pill fw-bold">
+                                <i class="fas fa-check me-2"></i>Assign
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Notice Board -->
+    <div class="col-xl-4">
+        <div class="card shadow-sm border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-bullhorn me-2 text-warning"></i>Notices</h5>
+                <button class="btn btn-sm btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#noticeModal">
+                    <i class="fas fa-plus me-1"></i>Post
+                </button>
+            </div>
+            {% if notices %}
+            <div class="d-flex flex-column gap-3">
+                {% for notice in notices %}
+                <div class="p-3 bg-light rounded-3 border-start border-4 {% if notice.priority == 'urgent' %}border-danger{% else %}border-primary{% endif %} shadow-sm mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold small">{{ notice.title }}</span>
+                        <div class="d-flex gap-2">
+                           {% if notice.file_attachment %}
+                           <a href="{{ url_for('static', filename='uploads/' + notice.file_attachment) }}" target="_blank" class="text-primary small"><i class="fas fa-paperclip"></i></a>
+                           {% endif %}
+                           <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Delete?')">
+                               <button type="submit" class="border-0 bg-transparent text-danger p-0 small"><i class="fas fa-trash"></i></button>
+                           </form>
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-0">{{ notice.message[:100] }}...</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-secondary py-4">
+                <i class="fas fa-bell-slash fa-2x mb-3 d-block"></i>
+                No notices posted yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Post Notice Modal -->
+<div class="modal fade" id="noticeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-bullhorn me-2 text-warning"></i>Post a Notice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('post_notice') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Notice Title</label>
+                        <input type="text" class="form-control bg-light border-0" name="notice_title" required placeholder="e.g. System Maintenance">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="notice_category" class="form-label fw-bold">Category</label>
+                            <select class="form-select bg-light border-0" id="notice_category" name="notice_category">
+                                <option value="alert">Alert</option>
+                                <option value="circular">Circular</option>
+                                <option value="campus_instruction">Campus Instruction</option>
+                                <option value="event" selected>Event</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="notice_priority" class="form-label fw-bold">Priority</label>
+                            <select class="form-select bg-light border-0" id="notice_priority" name="notice_priority">
+                                <option value="normal" selected>Normal</option>
+                                <option value="important">Important</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Message</label>
+                        <textarea class="form-control bg-light border-0" name="notice_message" rows="4" required
+                                  placeholder="Type the notice message here..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Attachment <small class="text-secondary">(Optional)</small></label>
+                        <input type="file" class="form-control bg-light border-0" name="notice_attachment">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success rounded-pill fw-bold">
+                            <i class="fas fa-paper-plane me-2"></i>Post Notice
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

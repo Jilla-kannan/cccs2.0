@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <div>
+        <h3 class="fw-bold mb-0">Complaint #{{ complaint.complaint_id }}</h3>
+        <span class="text-secondary small">{{ complaint.title }}</span>
+    </div>
+    <a href="{{ url_for('principal_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-medium">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+</div>
+
+<div class="row g-4 fade-in">
+    <!-- Complaint Details + History -->
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="fw-bold mb-0">{{ complaint.title }}</h5>
+                {% set sc = complaint.status %}
+                {% if sc == 'pending' %}<span class="badge bg-warning text-dark rounded-pill px-3 py-2">Pending</span>
+                {% elif sc == 'assigned' %}<span class="badge bg-primary rounded-pill px-3 py-2">Assigned</span>
+                {% elif sc == 'in_progress' %}<span class="badge bg-info rounded-pill px-3 py-2">In Progress</span>
+                {% elif sc == 'resolved' %}<span class="badge bg-success rounded-pill px-3 py-2">Resolved</span>
+                {% elif sc == 'escalated' %}<span class="badge bg-danger rounded-pill px-3 py-2">Escalated</span>
+                {% endif %}
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4">
+                    <span class="text-secondary small">Category</span>
+                    <p class="fw-semibold mb-0">{{ complaint.category }}</p>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-secondary small">Submitted By</span>
+                    <p class="fw-bold mb-0">
+                        {% if complaint.author %}
+                            {% if complaint.anonymous %}
+                                <span class="text-secondary italic"><i class="fas fa-user-secret me-1"></i>Anonymous</span>
+                            {% else %}
+                                {{ complaint.author.name }}
+                                <br>
+                                <small class="text-secondary fw-normal">
+                                    {{ complaint.author.department }} | {{ complaint.author.year or 'Year N/A' }}<br>
+                                    {{ complaint.author.phone or 'No Phone' }}
+                                </small>
+                            {% endif %}
+                        {% else %}—{% endif %}
+                    </p>
+                </div>
+                <div class="col-sm-4">
+                    <span class="text-secondary small">Assigned Staff</span>
+                    <p class="fw-semibold mb-0">
+                        {% if complaint.assignee %}{{ complaint.assignee.name }}
+                        {% else %}<span class="text-secondary">Not assigned</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+            <hr>
+            <h6 class="fw-bold text-secondary text-uppercase mb-2">Description</h6>
+            <p class="text-dark">{{ complaint.description }}</p>
+            {% if complaint.image %}
+            <hr>
+            <h6 class="fw-bold text-secondary text-uppercase mb-2">Student Evidence</h6>
+            <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+                 class="img-fluid rounded-3 shadow-sm" style="max-height:280px;" alt="Evidence">
+            {% endif %}
+        </div>
+
+        <!-- Update History -->
+        <div class="card shadow-sm border-0 p-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-history me-2 text-primary"></i>Update History</h5>
+            {% if complaint.updates %}
+            {% for update in complaint.updates %}
+            <div class="d-flex gap-3 mb-4">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:34px;height:34px;">
+                    <i class="fas fa-user small"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="card bg-light border-0 p-3 rounded-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-semibold">{{ update.updater.name }}</span>
+                            <small class="text-secondary">{{ update.timestamp.strftime('%d %b %Y, %I:%M %p') }}</small>
+                        </div>
+                        <p class="mb-1">{{ update.message }}</p>
+                        {% set us = update.status %}
+                        {% if us == 'assigned' %}<span class="badge bg-primary">Assigned</span>
+                        {% elif us == 'in_progress' %}<span class="badge bg-info">In Progress</span>
+                        {% elif us == 'resolved' %}<span class="badge bg-success">Resolved</span>
+                        {% elif us == 'escalated' %}<span class="badge bg-danger">Escalated</span>
+                        {% endif %}
+                        {% if update.proof_file %}
+                        <div class="mt-2">
+                            <a href="{{ url_for('static', filename='uploads/' + update.proof_file) }}"
+                               target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="fas fa-paperclip me-1"></i>View Proof
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-secondary text-center py-3">No updates yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions Sidebar -->
+    <div class="col-xl-4">
+        {% if complaint.status != 'resolved' %}
+        <!-- Principal Update Form (Always available if not resolved) -->
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3"><i class="fas fa-edit me-2"></i>Status Update</h6>
+            <form method="POST" action="{{ url_for('principal_update_complaint', complaint_id=complaint.id) }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Select New Status</label>
+                    <select name="status" class="form-select bg-light border-0">
+                        <option value="under_review" {% if complaint.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                        <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>Mark as Resolved (Clear)</option>
+                        <option value="escalated" {% if complaint.status == 'escalated' %}selected{% endif %}>Keep as Escalated</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Response Message</label>
+                    <textarea name="message" class="form-control bg-light border-0" rows="3" required placeholder="Describe the resolution or action taken..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Proof Attachment (Optional)</label>
+                    <input type="file" name="proof_file" class="form-control bg-light border-0">
+                </div>
+                <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">
+                    <i class="fas fa-save me-2"></i>Update Status
+                </button>
+            </form>
+        </div>
+
+        <!-- Assign Form -->
+        <div class="card shadow-sm border-0 p-4 mb-4">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3"><i class="fas fa-user-check me-2"></i>Reassign / Assign to Staff</h6>
+            <form method="POST" action="{{ url_for('assign_complaint', complaint_id=complaint.id) }}">
+                <div class="mb-3">
+                    <select name="staff_id" class="form-select bg-light border-0" required>
+                        <option value="" disabled selected>Select staff member...</option>
+                        {% for staff in staff_list %}
+                        <option value="{{ staff.id }}" {% if complaint.assigned_staff == staff.id %}selected{% endif %}>
+                            {{ staff.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">
+                    <i class="fas fa-check-edge me-2"></i>Assign Staff
+                </button>
+            </form>
+        </div>
+
+        {% if complaint.status != 'escalated' %}
+        <!-- Escalate (Only if not already escalated) -->
+        <div class="card shadow-sm border-0 p-4 border-danger border-opacity-25">
+            <h6 class="fw-bold text-danger text-uppercase mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Escalate</h6>
+            <p class="text-secondary small">Mark this complaint as escalated for urgent attention.</p>
+            <form method="POST" action="{{ url_for('escalate_complaint', complaint_id=complaint.id) }}"
+                  onsubmit="return confirm('Escalate this complaint?')">
+                <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">
+                    <i class="fas fa-arrow-up me-2"></i>Escalate Complaint
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="card shadow-sm border-0 p-4 text-center">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h5 class="fw-bold text-success">Resolved</h5>
+            <p class="text-secondary small mb-0">This issue has been cleared and closed.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

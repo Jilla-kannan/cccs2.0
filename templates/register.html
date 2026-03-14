@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block guest_content %}
+<div class="row justify-content-center py-5 fade-in">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4 p-4 mt-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold">Student Registration</h2>
+                <p class="text-secondary">Join the Campus Complaint Community System</p>
+            </div>
+
+            <form method="POST" action="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label fw-medium text-secondary">Full Name</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-user text-secondary"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="name" name="name" required
+                                placeholder="John Doe">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label fw-medium text-secondary">Email Address</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-envelope text-secondary"></i></span>
+                            <input type="email" class="form-control border-start-0 ps-0" id="email" name="email"
+                                required placeholder="name@cccs.edu">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="department" class="form-label fw-medium text-secondary">Department</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-building text-secondary"></i></span>
+                            <select class="form-select border-start-0 ps-0" id="department" name="department" required>
+                                <option value="" selected disabled>Select Department</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Electronics & Communication">Electronics & Communication</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Business Administration">Business Administration</option>
+                                <option value="General Science">General Science</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="year" class="form-label fw-medium text-secondary">Year of Study</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-calendar-alt text-secondary"></i></span>
+                            <select class="form-select border-start-0 ps-0" id="year" name="year" required>
+                                <option value="" selected disabled>Select Year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                                <option value="5th Year">5th Year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label fw-medium text-secondary">Phone Number</label>
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="fas fa-phone text-secondary"></i></span>
+                        <input type="tel" class="form-control border-start-0 ps-0" id="phone" name="phone" required
+                            placeholder="+91 9876543210">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label fw-medium text-secondary">Password</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-lock text-secondary"></i></span>
+                            <input type="password" class="form-control border-start-0 ps-0" id="password"
+                                name="password" required placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="confirm_password" class="form-label fw-medium text-secondary">Confirm
+                            Password</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="fas fa-check-double text-secondary"></i></span>
+                            <input type="password" class="form-control border-start-0 ps-0" id="confirm_password"
+                                name="confirm_password" required placeholder="••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg shadow rounded-pill fw-bold">Sign Up</button>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-secondary small mb-0">Already have an account? <a href="{{ url_for('login') }}"
+                            class="text-primary fw-bold text-decoration-none">Sign In</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

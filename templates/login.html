@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block guest_content %}
+<div class="row justify-content-center py-5 fade-in">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-lg border-0 rounded-4 p-4 mt-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-university fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold">Welcome Back</h2>
+                <p class="text-secondary">Campus Complaint Community System</p>
+            </div>
+
+            <form method="POST" action="">
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-medium text-secondary">Email Address</label>
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="fas fa-envelope text-secondary"></i></span>
+                        <input type="email" class="form-control border-start-0 ps-0" id="email" name="email" required
+                            placeholder="name@cccs.edu">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-medium text-secondary">Password</label>
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="fas fa-lock text-secondary"></i></span>
+                        <input type="password" class="form-control border-start-0 ps-0" id="password" name="password"
+                            required placeholder="Enter password">
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input shadow-sm" id="remember" name="remember">
+                    <label class="form-check-label fw-medium text-secondary" for="remember">Remember me</label>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg shadow rounded-pill fw-bold">Sign In</button>
+                </div>
+
+                <div class="text-center mb-3">
+                    <p class="text-secondary small mb-0">Don't have an account? <a href="{{ url_for('register') }}"
+                            class="text-primary fw-bold text-decoration-none">Sign Up</a></p>
+                </div>
+            </form>
+
+
+        </div>
+    </div>
+</div>
+{% endblock %}

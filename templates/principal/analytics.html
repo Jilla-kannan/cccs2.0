@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <div>
+        <h3 class="fw-bold mb-0">Analytics & Insights</h3>
+        <p class="text-secondary small">Visualized distribution of campus complaints</p>
+    </div>
+    <a href="{{ url_for('principal_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-medium">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row g-4 fade-in">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Complaints by Category</h6>
+            <div style="height: 400px;"><canvas id="categoryChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Status Distribution</h6>
+            <div style="height: 400px;"><canvas id="statusChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Tables -->
+<div class="row g-4 mt-2 fade-in">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Category Breakdown</h6>
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th class="text-end">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(cat_labels|length) %}
+                    <tr>
+                        <td class="text-capitalize">{{ cat_labels[i] }}</td>
+                        <td class="text-end fw-bold">{{ cat_data[i] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="fw-bold text-uppercase text-secondary mb-3">Priority Breakdown</h6>
+            <p class="text-muted small">Overview of current resolution progress across all departments.</p>
+            <div class="d-flex flex-column gap-3">
+                {% for i in range(status_labels|length) %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-capitalize">{{ status_labels[i]|replace('_', ' ') }}</span>
+                    <div class="progress flex-grow-1 mx-3" style="height: 8px;">
+                        {% set total = status_data|sum %}
+                        {% set perc = (status_data[i] / total * 100) if total > 0 else 0 %}
+                        <div class="progress-bar" role="progressbar" style="--width: {{ perc|round|int }}%; width: var(--width);"></div>
+                    </div>
+                    <span class="fw-bold">{{ status_data[i] }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts for Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="chart-data" type="application/json">
+    {
+        "cat_labels": {{ cat_labels|tojson|safe }},
+        "cat_data": {{ cat_data|tojson|safe }},
+        "status_labels": {{ status_labels|tojson|safe }},
+        "status_data": {{ status_data|tojson|safe }}
+    }
+</script>
+
+<script>
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(catCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.cat_labels,
+            datasets: [{
+                label: 'Complaints',
+                data: chartData.cat_data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderRadius: 8
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+        }
+    });
+
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.status_labels,
+            datasets: [{
+                data: chartData.status_data,
+                backgroundColor: ['#ffc107', '#0d6efd', '#198754', '#dc3545']
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } } 
+        }
+    });
+</script>
+{% endblock %}
