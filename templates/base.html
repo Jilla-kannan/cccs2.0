@@ -194,11 +194,23 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const wrapper = document.getElementById("wrapper");
         document.getElementById("menu-toggle")?.addEventListener("click", function (e) {
             e.preventDefault();
-            document.getElementById("wrapper").classList.toggle("toggled");
+            wrapper.classList.toggle("toggled");
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const isClickInsideSidebar = document.getElementById('sidebar-wrapper').contains(event.target);
+            const isClickOnToggle = document.getElementById('menu-toggle').contains(event.target);
+            
+            if (window.innerWidth < 768 && wrapper.classList.contains('toggled') && !isClickInsideSidebar && !isClickOnToggle) {
+                wrapper.classList.remove('toggled');
+            }
         });
     </script>
+
     {% block scripts %}{% endblock %}
 </body>
 
