@@ -30,8 +30,16 @@ def save_upload(file_obj, upload_folder):
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'cccs_secret_key_2024'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-    app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+    # Detect if running on Vercel
+    IS_VERCEL = "VERCEL" in os.environ
+    
+    if IS_VERCEL:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/site.db'
+        app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+        app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+    
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     db.init_app(app)
