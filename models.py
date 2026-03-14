@@ -31,7 +31,7 @@ class Complaint(db.Model):
     status = db.Column(db.String(20), nullable=False, default='submitted')
     # status options: submitted, under_review, resolved, escalated
     assigned_staff = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    image = db.Column(db.String(300), nullable=True)
+    image = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -43,7 +43,7 @@ class ComplaintUpdate(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     message = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), nullable=False)
-    proof_file = db.Column(db.String(300), nullable=True)
+    proof_file = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     updater = db.relationship('User', foreign_keys=[updated_by])
@@ -54,7 +54,7 @@ class Notice(db.Model):
     message = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False, default='circular') # 'alert', 'circular', 'campus_instruction', 'event'
     priority = db.Column(db.String(20), nullable=False, default='normal') # 'normal', 'important', 'urgent'
-    file_attachment = db.Column(db.String(300), nullable=True)
+    file_attachment = db.Column(db.Text, nullable=True)
     expiry_date = db.Column(db.DateTime, nullable=True)
     posted_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

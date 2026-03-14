@@ -1,6 +1,7 @@
 import os
 import secrets
 import csv
+import base64
 from io import StringIO, BytesIO
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, flash, request, abort, make_response, send_file, send_from_directory
@@ -22,15 +23,18 @@ def allowed_file(filename):
 # Detect if running on Vercel
 IS_VERCEL = "VERCEL" in os.environ
 
-def save_upload(file_obj, upload_folder):
-    """Save an uploaded file and return its stored filename, or None."""
+def save_upload(file_obj, upload_folder=None):
+    """Convert an uploaded file to a Base64 string for DB storage, or None."""
     if not file_obj or file_obj.filename == '':
         return None
     if allowed_file(file_obj.filename):
-        ext = file_obj.filename.rsplit('.', 1)[1].lower()
-        unique_name = f"{secrets.token_hex(8)}.{ext}"
-        file_obj.save(os.path.join(upload_folder, unique_name))
-        return unique_name
+        # We store as Base64 to survive Vercel's ephemeral filesystem
+        file_content = file_obj.read()
+        if not file_content:
+            return None
+        mime_type = file_obj.content_type or 'application/octet-stream'
+        b64 = base64.b64encode(file_content).decode('utf-8')
+        return f"data:{mime_type};base64,{b64}"
     return None
 
 
@@ -61,6 +65,16 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.context_processor
+    def utility_processor():
+        def get_file_url(filename):
+            if not filename:
+                return ""
+            if isinstance(filename, str) and filename.startswith('data:'):
+                return filename
+            return url_for('uploaded_file', filename=filename)
+        return dict(get_file_url=get_file_url)
 
     # ------------------------------------------------------------------ #
     #  Database seeding – create predefined users on first run             #
@@ -122,16 +136,15 @@ def create_app():
 
     @app.route('/uploads/<filename>')
     def uploaded_file(filename):
-        # 1. Try configured UPLOAD_FOLDER (usually /tmp on Vercel)
-        if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-        
-        # 2. Try static/uploads (fallback for deployed files)
+        # This route is now a fallback for legacy files or specific static assets
+        # New files are stored as Base64 in the DB
         static_uploads = os.path.join(app.root_path, 'static', 'uploads')
         if os.path.exists(os.path.join(static_uploads, filename)):
             return send_from_directory(static_uploads, filename)
+        
+        if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
             
-        # 3. Last resort fallback
         return abort(404)
 
 

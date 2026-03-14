@@ -77,8 +77,8 @@
                     <td class="fw-bold text-dark">
                         {{ complaint.title }}
                         {% if complaint.image %}
-                        <a href="{{ url_for('uploaded_file', filename=complaint.image) }}" target="_blank">
-                            <img src="{{ url_for('uploaded_file', filename=complaint.image) }}" 
+                        <a href="{{ get_file_url(complaint.image) }}" target="_blank">
+                            <img src="{{ get_file_url(complaint.image) }}" 
                                  class="rounded border shadow-sm ms-2" style="width: 24px; height: 24px; object-fit: cover;" 
                                  title="View Attachment" alt="Evidence">
                         </a>

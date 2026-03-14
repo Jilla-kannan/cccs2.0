@@ -74,7 +74,7 @@
                                 <div class="badge-group d-flex flex-column align-items-end gap-1">
                                     <span class="badge bg-primary-soft px-3 py-2 rounded-pill text-capitalize">{{ notice.category }}</span>
                                     {% if notice.file_attachment %}
-                                    <a href="{{ url_for('uploaded_file', filename=notice.file_attachment) }}" target="_blank" class="text-primary small text-decoration-none">
+                                    <a href="{{ get_file_url(notice.file_attachment) }}" target="_blank" class="text-primary small text-decoration-none">
                                         <i class="fas fa-paperclip"></i> View
                                     </a>
                                     {% endif %}

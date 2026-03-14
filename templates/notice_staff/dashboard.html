@@ -110,7 +110,7 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     {% if notice.file_attachment %}
-                                    <a href="{{ url_for('uploaded_file', filename=notice.file_attachment) }}" target="_blank" class="btn btn-sm btn-light border" title="View Attachment">
+                                    <a href="{{ get_file_url(notice.file_attachment) }}" target="_blank" class="btn btn-sm btn-light border" title="View Attachment">
                                         <i class="fas fa-paperclip"></i>
                                     </a>
                                     {% endif %}
