@@ -55,7 +55,7 @@
                     <i class="fas fa-plus-circle me-2"></i>Submit Complaint
                 </a>
                 <a href="{{ url_for('student_all_complaints') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0">
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'student_all_complaints' %}active{% endif %}">
                     <i class="fas fa-globe me-2"></i>Campus Issues
                 </a>
                 <a href="{{ url_for('view_all_notices') }}"
@@ -134,11 +134,11 @@
                 <button class="btn btn-outline-secondary" id="menu-toggle"><i class="fas fa-bars"></i></button>
                 <div class="ms-auto d-flex align-items-center gap-3">
                     <div class="dropdown">
-                        <button class="btn btn-white dropdown-toggle d-flex align-items-center" type="button"
+                        <button class="btn btn-light dropdown-toggle d-flex align-items-center border-0 bg-transparent" type="button"
                             id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff"
-                                width="32" height="32" class="me-2 rounded-circle" alt="User">
-                            <span class="fw-medium text-dark">{{ current_user.name }}</span>
+                                width="32" height="32" class="me-2 rounded-circle shadow-sm" alt="User">
+                            <span class="fw-bold text-dark">{{ current_user.name }}</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
                             <li><span class="dropdown-item-text text-secondary small px-3">{{ current_user.email
@@ -195,15 +195,22 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const wrapper = document.getElementById("wrapper");
-        document.getElementById("menu-toggle")?.addEventListener("click", function (e) {
-            e.preventDefault();
-            wrapper.classList.toggle("toggled");
-        });
+        const menuToggle = document.getElementById("menu-toggle");
+        
+        if (menuToggle && wrapper) {
+            menuToggle.addEventListener("click", function (e) {
+                e.preventDefault();
+                wrapper.classList.toggle("toggled");
+            });
+        }
 
         // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
-            const isClickInsideSidebar = document.getElementById('sidebar-wrapper').contains(event.target);
-            const isClickOnToggle = document.getElementById('menu-toggle').contains(event.target);
+            const sidebar = document.getElementById('sidebar-wrapper');
+            if (!sidebar || !wrapper || !menuToggle) return; // Fix null exception on guest page
+            
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickOnToggle = menuToggle.contains(event.target);
             
             if (window.innerWidth < 768 && wrapper.classList.contains('toggled') && !isClickInsideSidebar && !isClickOnToggle) {
                 wrapper.classList.remove('toggled');
