@@ -113,11 +113,17 @@
                                 <span class="text-truncate d-block">
                                     {{ complaint.title }}
                                     {% if complaint.image %}
-                                    <a href="{{ get_file_url(complaint.image) }}" target="_blank">
+                                    {% if is_image(complaint.image) %}
+                                    <a href="{{ url_for('view_attachment', obj_type='complaint', obj_id=complaint.id) }}" target="_blank">
                                         <img src="{{ get_file_url(complaint.image) }}" 
                                              class="rounded border shadow-sm ms-1" style="width: 20px; height: 20px; object-fit: cover;" 
-                                             title="View Attachment" alt="Evidence">
+                                             title="View Image" alt="Evidence">
                                     </a>
+                                    {% else %}
+                                    <a href="{{ url_for('view_attachment', obj_type='complaint', obj_id=complaint.id) }}" target="_blank" class="ms-1 text-primary" title="View Document">
+                                        <i class="fas fa-paperclip"></i>
+                                    </a>
+                                    {% endif %}
                                     {% endif %}
                                 </span>
                             </td>
@@ -242,8 +248,9 @@
                         <span class="fw-bold small">{{ notice.title }}</span>
                         <div class="d-flex gap-2">
                            {% if notice.file_attachment %}
-                           <a href="{{ get_file_url(notice.file_attachment) }}" target="_blank" class="text-primary small"><i class="fas fa-paperclip"></i></a>
+                           <a href="{{ url_for('view_attachment', obj_type='notice', obj_id=notice.id) }}" target="_blank" class="text-primary small"><i class="fas fa-paperclip"></i></a>
                            {% endif %}
+
 
                            <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Delete?')">
                                <button type="submit" class="border-0 bg-transparent text-danger p-0 small"><i class="fas fa-trash"></i></button>

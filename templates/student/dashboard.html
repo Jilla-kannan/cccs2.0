@@ -85,7 +85,7 @@
                             <td class="fw-bold text-dark">
                                 {{ complaint.title }}
                                 {% if complaint.image %}
-                                <a href="{{ get_file_url(complaint.image) }}" target="_blank">
+                                <a href="{{ url_for('view_attachment', obj_type='complaint', obj_id=complaint.id) }}" target="_blank">
                                     <img src="{{ get_file_url(complaint.image) }}" 
                                          class="rounded border shadow-sm ms-2" style="width: 20px; height: 20px; object-fit: cover;" 
                                          title="View Attachment" alt="Evidence">
@@ -142,10 +142,11 @@
                         <span class="fw-bold small">{{ notice.title }}</span>
                         <div class="d-flex gap-2 align-items-center">
                             {% if notice.file_attachment %}
-                            <a href="{{ get_file_url(notice.file_attachment) }}" target="_blank" class="text-primary small" title="View Attachment">
+                            <a href="{{ url_for('view_attachment', obj_type='notice', obj_id=notice.id) }}" target="_blank" class="text-primary small" title="View Attachment">
                                 <i class="fas fa-paperclip"></i>
                             </a>
                             {% endif %}
+
 
                             <small class="text-secondary">{{ notice.date.strftime('%d %b') }}</small>
                         </div>

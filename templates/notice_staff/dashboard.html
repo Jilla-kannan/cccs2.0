@@ -110,10 +110,11 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     {% if notice.file_attachment %}
-                                    <a href="{{ get_file_url(notice.file_attachment) }}" target="_blank" class="btn btn-sm btn-light border" title="View Attachment">
+                                    <a href="{{ url_for('view_attachment', obj_type='notice', obj_id=notice.id) }}" target="_blank" class="btn btn-sm btn-light border" title="View Attachment">
                                         <i class="fas fa-paperclip"></i>
                                     </a>
                                     {% endif %}
+
                                     <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Delete this notice?')">
                                         <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete">
                                             <i class="fas fa-trash"></i>

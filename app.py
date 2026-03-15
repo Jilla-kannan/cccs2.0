@@ -2,14 +2,18 @@ import os
 import secrets
 import csv
 import base64
+import traceback
 from io import StringIO, BytesIO
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, flash, request, abort, make_response, send_file, send_from_directory
-
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, make_response, send_file, send_from_directory, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
-from models import db, User, Complaint, ComplaintUpdate, Notice
 from werkzeug.utils import secure_filename
+from models import db, User, Complaint, ComplaintUpdate, Notice
+try:
+    from fpdf import FPDF
+except ImportError:
+    FPDF = None
 
 # Expensive imports moved inside routes to speed up cold starts
 # from fpdf import FPDF
@@ -35,13 +39,21 @@ def save_upload(file_obj, upload_folder=None):
         mime_type = file_obj.content_type or 'application/octet-stream'
         b64 = base64.b64encode(file_content).decode('utf-8')
         return f"data:{mime_type};base64,{b64}"
+    
+    flash(f'File "{file_obj.filename}" was rejected. Only JPG, PNG, and PDF are allowed.', 'warning')
     return None
 
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'cccs_secret_key_2024'
-    if IS_VERCEL:
+    # Priority: 1. Remote DB, 2. Local/Vercel SQLite
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        # Fix for some providers using 'postgres://' which SQLAlchemy 1.4+ rejected
+        app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://", 1)
+        app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+    elif IS_VERCEL:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/site.db'
         app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
     else:
@@ -51,8 +63,9 @@ def create_app():
     # Ensure upload folder exists
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    except Exception as e:
-        print(f"Warning: Could not create upload folder {app.config['UPLOAD_FOLDER']}: {e}")
+    except Exception:
+        print(f"Warning: Could not create upload folder {app.config['UPLOAD_FOLDER']}")
+        traceback.print_exc()
 
     db.init_app(app)
     bcrypt = Bcrypt(app)
@@ -74,7 +87,17 @@ def create_app():
             if isinstance(filename, str) and filename.startswith('data:'):
                 return filename
             return url_for('uploaded_file', filename=filename)
-        return dict(get_file_url=get_file_url)
+            
+        def is_image(filename):
+            if not filename:
+                return False
+            if isinstance(filename, str) and filename.startswith('data:'):
+                return 'image/' in filename
+            # Legacy files
+            ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+            return ext in ['jpg', 'jpeg', 'png', 'gif']
+            
+        return dict(get_file_url=get_file_url, is_image=is_image)
 
     # ------------------------------------------------------------------ #
     #  Database seeding – create predefined users on first run             #
@@ -136,16 +159,70 @@ def create_app():
 
     @app.route('/uploads/<filename>')
     def uploaded_file(filename):
-        # This route is now a fallback for legacy files or specific static assets
-        # New files are stored as Base64 in the DB
+        # Fallback for legacy files stored on disk
         static_uploads = os.path.join(app.root_path, 'static', 'uploads')
         if os.path.exists(os.path.join(static_uploads, filename)):
             return send_from_directory(static_uploads, filename)
-        
         if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
             return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-            
         return abort(404)
+
+    @app.route('/view/attachment/<string:obj_type>/<int:obj_id>')
+    @login_required
+    def view_attachment(obj_type, obj_id):
+        """Serve a Base64-encoded attachment stored in the DB as a real HTTP file response."""
+        content = None
+        if obj_type == 'notice':
+            obj = Notice.query.get_or_404(obj_id)
+            content = obj.file_attachment
+        elif obj_type == 'complaint':
+            obj = Complaint.query.get_or_404(obj_id)
+            content = obj.image
+        elif obj_type == 'update':
+            obj = ComplaintUpdate.query.get_or_404(obj_id)
+            content = obj.proof_file
+        else:
+            abort(404)
+
+        if content is None:
+            return abort(404)
+
+        if not isinstance(content, str):
+            return abort(404)
+
+        # Legacy: file was stored as a filename on disk
+        if not content.startswith('data:'):
+            return redirect(url_for('uploaded_file', filename=content))
+
+        # Decode Base64 data URI and stream it
+        try:
+            if ',' not in content:
+                abort(404)
+            parts = content.split(',', 1)
+            header = parts[0]
+            b64_data = parts[1]
+            if ':' not in header or ';' not in header:
+                abort(404)
+            mime_parts = header.split(':')
+            mime_type = mime_parts[1].split(';')[0]
+            file_data = base64.b64decode(b64_data)
+            ext_map = {
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/gif': 'gif',
+                'application/pdf': 'pdf',
+            }
+            ext = ext_map.get(mime_type, 'bin')
+            return send_file(
+                BytesIO(file_data),
+                mimetype=mime_type,
+                as_attachment=False,
+                download_name=f'attachment_{obj_id}.{ext}'
+            )
+        except Exception:
+            print(f'view_attachment error')
+            traceback.print_exc()
+            abort(500)
 
 
     @app.route('/login', methods=['GET', 'POST'])
@@ -165,9 +242,8 @@ def create_app():
     @app.route('/logout')
     @login_required
     def logout():
-        from flask import session
         logout_user()
-        session.clear() # Completely clear the session
+        session.clear() 
         flash('You have been logged out.', 'info')
         return redirect(url_for('home'))
 
@@ -640,7 +716,9 @@ def create_app():
     def export_complaints_pdf():
         if current_user.role != 'principal':
             abort(403)
-        from fpdf import FPDF
+        if not FPDF:
+            flash("PDF generation library is not available.", "danger")
+            return redirect(url_for('principal_dashboard'))
         complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
         
         pdf = FPDF()
@@ -713,8 +791,8 @@ import sys
 
 try:
     app = create_app()
-except Exception as e:
-    print(f"CRITICAL: Failed to create app: {e}", file=sys.stderr)
+except Exception:
+    traceback.print_exc()
     raise
 
 if __name__ == '__main__':
