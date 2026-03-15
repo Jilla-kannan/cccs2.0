@@ -40,10 +40,10 @@
                         </div>
                         
                         {% if notice.file_attachment %}
-                        <a href="{{ get_file_url(notice.file_attachment) }}" 
-                           target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                data-bs-toggle="modal" data-bs-target="#noticeAttachModal_{{ notice.id }}">
                             <i class="fas fa-paperclip me-1"></i>View Attachment
-                        </a>
+                        </button>
                         {% endif %}
 
                     </div>
@@ -55,8 +55,8 @@
         <div class="modal fade" id="noticeModal{{ notice.id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header border-0 pb-0">
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header border-0 pb-0 shadow-none">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
                         <h4 class="fw-bold mb-3">{{ notice.title }}</h4>
@@ -64,10 +64,10 @@
                         <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
                             <span class="text-secondary small">Posted on {{ notice.date.strftime('%d %b %Y, %I:%M %p') }}</span>
                             {% if notice.file_attachment %}
-                            <a href="{{ get_file_url(notice.file_attachment) }}" 
-                               target="_blank" class="btn btn-primary rounded-pill">
-                                <i class="fas fa-download me-2"></i>Download Attachment
-                            </a>
+                            <button class="btn btn-primary rounded-pill px-4"
+                                    data-bs-toggle="modal" data-bs-target="#noticeAttachModal_{{ notice.id }}">
+                                <i class="fas fa-download me-2"></i>Open / Download
+                            </button>
                             {% endif %}
 
                         </div>
@@ -75,6 +75,24 @@
                 </div>
             </div>
         </div>
+
+        {% if notice.file_attachment %}
+        <!-- Notice Attachment Modal -->
+        <div class="modal fade" id="noticeAttachModal_{{ notice.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold">{{ notice.title }} — Attachment</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-3 text-center">
+                        <iframe src="{{ url_for('view_attachment', obj_type='notice', obj_id=notice.id) }}"
+                                style="width:100%;height:80vh;border:none;" title="Notice Attachment"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         {% endfor %}
     {% else %}
         <div class="col-12 text-center py-5">
