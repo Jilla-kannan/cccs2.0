@@ -1,10 +1,10 @@
 {
-    "pythonVersion": "3.12",
+    "pythonVersion": "3.13",
     "pythonPlatform": "Windows",
     "venvPath": ".",
     "venv": "venv",
+    "pythonPath": "c:/Users/ADMIN/Documents/cccs/venv/Scripts/python.exe",
     "include": ["."],
-    "extraPaths": [
-        "./venv/Lib/site-packages"
-    ]
+    "exclude": ["venv", "__pycache__"],
+    "typeCheckingMode": "basic"
 }

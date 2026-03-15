@@ -1,9 +1,10 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}\\venv\\Scripts\\python.exe",
-    "python.pythonPath": "${workspaceFolder}\\venv\\Scripts\\python.exe",
+    "python.defaultInterpreterPath": "c:\\Users\\ADMIN\\Documents\\cccs\\venv\\Scripts\\python.exe",
     "python.analysis.extraPaths": [
-        "${workspaceFolder}\\venv\\Lib\\site-packages"
+        "c:\\Users\\ADMIN\\Documents\\cccs\\venv\\Lib\\site-packages"
     ],
     "python.analysis.typeCheckingMode": "basic",
-    "pyre.enable": false
+    "python.languageServer": "Pylance",
+    "pyre.enable": false,
+    "pyre2.enable": false
 }

@@ -6,8 +6,15 @@
         <h3 class="fw-bold mb-0">Student Directory</h3>
         <p class="text-secondary small mb-0">Manage and view all registered students</p>
     </div>
-    <div class="bg-primary-soft px-4 py-2 rounded-pill">
-        <span class="fw-bold">Total Students: {{ students|length }}</span>
+    <div class="d-flex align-items-center gap-2">
+        <div class="bg-primary-soft px-4 py-2 rounded-pill">
+            <span class="fw-bold">Total Students: {{ students|length }}</span>
+        </div>
+        {% if current_user.role == 'principal' %}
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i class="fas fa-plus me-2"></i>Add Student
+        </button>
+        {% endif %}
     </div>
 </div>
 
@@ -51,6 +58,9 @@
                         <th class="py-3 border-0">Year</th>
                         <th class="py-3 border-0">Phone</th>
                         <th class="py-3 border-0">Joined Date</th>
+                        {% if current_user.role == 'principal' %}
+                        <th class="py-3 border-0 text-end">Actions</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -63,7 +73,7 @@
                                          class="rounded-circle me-3" width="32" height="32" alt="Avatar">
                                     <div>
                                         <div class="fw-bold text-dark">{{ student.name }}</div>
-                                        <div class="text-secondary smaller">ID: #{{ student.id }}</div>
+                                        <div class="text-secondary smaller">ID: #{{ student.id }} | Dept: {{ student.department or 'N/A' }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -76,7 +86,67 @@
                             <td class="py-3 text-secondary smaller text-muted">
                                 {{ student.created_at.strftime('%d %b %Y') }}
                             </td>
+                            {% if current_user.role == 'principal' %}
+                            <td class="py-3 text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill me-1" data-bs-toggle="modal" data-bs-target="#editStudentModal{{ student.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form action="{{ url_for('principal_delete_student', student_id=student.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Are you sure you want to delete this student?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
                         </tr>
+                        
+                        {% if current_user.role == 'principal' %}
+                        <!-- Edit Student Modal -->
+                        <div class="modal fade" id="editStudentModal{{ student.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <form action="{{ url_for('principal_edit_student', student_id=student.id) }}" method="POST">
+                                    <div class="modal-content border-0 shadow">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="fw-bold">Edit Student</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Name</label>
+                                                <input type="text" name="name" class="form-control" value="{{ student.name }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Email</label>
+                                                <input type="email" name="email" class="form-control" value="{{ student.email }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Department</label>
+                                                <input type="text" name="department" class="form-control" value="{{ student.department or '' }}" required>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-6">
+                                                    <label class="form-label small fw-bold">Year</label>
+                                                    <input type="text" name="year" class="form-control" value="{{ student.year or '' }}">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small fw-bold">Phone</label>
+                                                    <input type="text" name="phone" class="form-control" value="{{ student.phone or '' }}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 mt-3">
+                                                <label class="form-label small fw-bold">New Password (leave blank to keep current)</label>
+                                                <input type="password" name="password" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0">
+                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
                         {% endfor %}
                     {% else %}
                         <tr>
@@ -91,4 +161,52 @@
         </div>
     </div>
 </div>
+
+{% if current_user.role == 'principal' %}
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ url_for('principal_add_student') }}" method="POST">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold">Add Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Department</label>
+                        <input type="text" name="department" class="form-control" required>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Year</label>
+                            <input type="text" name="year" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Add Student</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

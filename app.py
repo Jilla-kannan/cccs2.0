@@ -617,6 +617,78 @@ def create_app():
         db.session.commit()
         flash('Complaint deleted successfully.', 'success')
         return redirect(url_for('principal_dashboard'))
+        
+    @app.route('/principal/student/delete/<int:student_id>', methods=['POST'])
+    @login_required
+    def principal_delete_student(student_id):
+        if current_user.role != 'principal':
+            abort(403)
+        student = User.query.get_or_404(student_id)
+        if student.role != 'student':
+            abort(400) # Only delete students
+        
+        # Delete related complaints and updates (cascade should handle updates, but we need to delete complaints)
+        # SQLAlchemy relationships should be configured with cascade="all, delete-orphan", but if not:
+        complaints = Complaint.query.filter_by(student_id=student.id).all()
+        for c in complaints:
+            db.session.delete(c)
+            
+        db.session.delete(student)
+        db.session.commit()
+        flash('Student deleted successfully.', 'success')
+        return redirect(url_for('view_all_students'))
+
+    @app.route('/principal/student/add', methods=['POST'])
+    @login_required
+    def principal_add_student():
+        if current_user.role != 'principal':
+            abort(403)
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        department = request.form.get('department', '').strip()
+        year = request.form.get('year', '').strip()
+        phone = request.form.get('phone', '').strip()
+
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.', 'danger')
+        else:
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            user = User(name=name, email=email, password=hashed_password, role='student', 
+                        department=department, year=year, phone=phone)
+            db.session.add(user)
+            db.session.commit()
+            flash('Student added successfully.', 'success')
+        return redirect(url_for('view_all_students'))
+
+    @app.route('/principal/student/edit/<int:student_id>', methods=['POST'])
+    @login_required
+    def principal_edit_student(student_id):
+        if current_user.role != 'principal':
+            abort(403)
+        student = User.query.get_or_404(student_id)
+        if student.role != 'student':
+            abort(400)
+            
+        student.name = request.form.get('name', '').strip()
+        new_email = request.form.get('email', '').strip()
+        
+        if new_email != student.email and User.query.filter_by(email=new_email).first():
+            flash('Email already used by another account.', 'danger')
+        else:
+            student.email = new_email
+            student.department = request.form.get('department', '').strip()
+            student.year = request.form.get('year', '').strip()
+            student.phone = request.form.get('phone', '').strip()
+            
+            password = request.form.get('password', '')
+            if password:
+                student.password = bcrypt.generate_password_hash(password).decode('utf-8')
+                
+            db.session.commit()
+            flash('Student details updated successfully.', 'success')
+            
+        return redirect(url_for('view_all_students'))
 
     @app.route('/principal/notice/delete/<int:notice_id>', methods=['POST'])
     @login_required
