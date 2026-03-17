@@ -40,11 +40,17 @@
     <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
         <div class="bg-dark text-white shadow-sm" id="sidebar-wrapper">
-            <div class="sidebar-heading p-4 border-bottom border-secondary d-flex align-items-center">
+            <div class="sidebar-heading p-4 border-bottom border-secondary d-flex align-items-center position-relative">
                 <i class="fas fa-university fa-2x text-primary me-2"></i>
                 <span class="fs-4 fw-bold">CCCS</span>
+                <i class="fas fa-times sidebar-close d-md-none" onclick="document.getElementById('wrapper').classList.remove('toggled')"></i>
             </div>
             <div class="list-group list-group-flush bg-dark my-3">
+                <a href="{{ url_for('home') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'home' %}active{% endif %}">
+                    <i class="fas fa-home me-2"></i>Home
+                </a>
+
                 {% if current_user.role == 'student' %}
                 <a href="{{ url_for('student_dashboard') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
@@ -70,7 +76,7 @@
                 </a>
                 <a href="{{ url_for('view_all_notices') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
-                    <i class="fas fa-eye me-2"></i>View Notices
+                    <i class="fas fa-bullhorn me-2"></i>Notices & Alerts
                 </a>
                 <a href="{{ url_for('view_all_students') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'view_all_students' %}active{% endif %}">
@@ -81,6 +87,10 @@
                 <a href="{{ url_for('notice_staff_dashboard') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'notice_staff_dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('view_all_notices') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
+                    <i class="fas fa-bullhorn me-2"></i>Notices & Alerts
                 </a>
                 <a href="{{ url_for('view_all_students') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'view_all_students' %}active{% endif %}">
@@ -99,6 +109,10 @@
                 <a href="{{ url_for('view_all_students') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'view_all_students' %}active{% endif %}">
                     <i class="fas fa-users me-2"></i>All Students
+                </a>
+                <a href="{{ url_for('principal_analytics') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-medium px-4 py-3 border-0 {% if request.endpoint == 'principal_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-pie me-2"></i>Analytics
                 </a>
 
                 {% elif current_user.role == 'admin' %}
@@ -130,30 +144,119 @@
         <!-- Page Content -->
         <div id="page-content-wrapper" class="w-100 bg-light">
             <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-3">
-                <button class="btn btn-outline-secondary" id="menu-toggle"><i class="fas fa-bars"></i></button>
-                <div class="ms-auto d-flex align-items-center gap-3">
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle d-flex align-items-center border-0 bg-transparent" type="button"
-                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff"
-                                width="32" height="32" class="me-2 rounded-circle shadow-sm" alt="User">
-                            <span class="fw-bold text-dark">{{ current_user.name }}</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
-                            <li><span class="dropdown-item-text text-secondary small px-3">{{ current_user.email
-                                    }}</span></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i
-                                        class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                        </ul>
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-2 sticky-top">
+                <div class="container-fluid p-0">
+                    <button class="btn btn-outline-secondary d-none d-md-inline-block" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <!-- Mobile Brand -->
+                    <div class="d-flex d-md-none align-items-center">
+                        <i class="fas fa-university text-primary me-2"></i>
+                        <span class="fw-bold h5 mb-0">CCCS</span>
+                    </div>
+
+                    <div class="ms-auto d-flex align-items-center gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle d-flex align-items-center border-0 bg-transparent px-2" type="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff"
+                                    width="32" height="32" class="rounded-circle shadow-sm" alt="User">
+                                <span class="fw-bold text-dark d-none d-sm-inline ms-2">{{ current_user.name }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
+                                <li class="px-3 py-2">
+                                    <div class="fw-bold small">{{ current_user.name }}</div>
+                                    <div class="text-secondary smaller text-truncate" style="max-width: 150px;">{{ current_user.email }}</div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="fas fa-home me-2"></i>Home</a></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </nav>
 
-            <div class="container-fluid p-4 dashboard-content">
+            <!-- Bottom Nav for Mobile -->
+            <nav class="bottom-nav d-md-none">
+                {% if current_user.role == 'student' %}
+                <a href="{{ url_for('student_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('submit_complaint') }}" class="bottom-nav-item {% if request.endpoint == 'submit_complaint' %}active{% endif %}">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Submit</span>
+                </a>
+                <a href="{{ url_for('student_all_complaints') }}" class="bottom-nav-item {% if request.endpoint == 'student_all_complaints' %}active{% endif %}">
+                    <i class="fas fa-globe"></i>
+                    <span>Issues</span>
+                </a>
+                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+
+                {% elif current_user.role == 'complaint_staff' %}
+                <a href="{{ url_for('staff_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'staff_dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+
+                {% elif current_user.role == 'notice_staff' %}
+                <a href="{{ url_for('notice_staff_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'notice_staff_dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>Students</span>
+                </a>
+
+                {% elif current_user.role == 'principal' %}
+                <a href="{{ url_for('principal_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'principal_dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>Students</span>
+                </a>
+                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Notices</span>
+                </a>
+                <a href="{{ url_for('principal_analytics') }}" class="bottom-nav-item {% if request.endpoint == 'principal_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Data</span>
+                </a>
+
+                {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                
+                <a href="#" class="bottom-nav-item" onclick="document.getElementById('wrapper').classList.toggle('toggled'); return false;">
+                    <i class="fas fa-ellipsis-h"></i>
+                    <span>More</span>
+                </a>
+            </nav>
+
+            <div class="container-fluid p-3 p-md-4 dashboard-content">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 {% for category, message in messages %}
@@ -172,8 +275,19 @@
 
     {% else %}
     <!-- Guest -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-2 sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{{ url_for('home') }}">
+                <i class="fas fa-university me-2"></i>CCCS
+            </a>
+            <div class="ms-auto d-flex gap-2">
+                <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-sm btn-primary rounded-pill px-3">Register</a>
+            </div>
+        </div>
+    </nav>
     <div class="bg-watermark"></div>
-    <div class="container mt-4">
+    <div class="container mt-4 pb-5">
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
