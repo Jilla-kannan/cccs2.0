@@ -208,22 +208,12 @@ body {
         font-size: 1.5rem !important;
         line-height: 1.2;
     }
-    .navbar {
-        padding: 0.6rem 1rem !important;
-        backdrop-filter: blur(10px);
-        background-color: rgba(255, 255, 255, 0.9) !important;
-    }
     .dashboard-content .justify-content-between.align-items-center {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 1rem;
     }
-    .navbar-brand-mobile {
-        font-size: 1.25rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-    }
+
     
     #wrapper.toggled #sidebar-wrapper {
         margin-left: 0;
