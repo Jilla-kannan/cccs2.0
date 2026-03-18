@@ -31,7 +31,6 @@
             z-index: 0;
             pointer-events: none;
         }
-
     </style>
 </head>
 
@@ -43,7 +42,8 @@
             <div class="sidebar-heading p-4 border-bottom border-secondary d-flex align-items-center position-relative">
                 <i class="fas fa-university fa-2x text-primary me-2"></i>
                 <span class="fs-4 fw-bold">CCCS</span>
-                <i class="fas fa-times sidebar-close d-md-none" onclick="document.getElementById('wrapper').classList.remove('toggled')"></i>
+                <i class="fas fa-times sidebar-close d-md-none"
+                    onclick="document.getElementById('wrapper').classList.remove('toggled')"></i>
             </div>
             <div class="list-group list-group-flush bg-dark my-3">
                 <a href="{{ url_for('home') }}"
@@ -130,131 +130,36 @@
 
             <!-- User info at bottom of sidebar -->
             <div class="sidebar-user-info p-4 border-top border-secondary mt-auto">
-                <div class="d-flex align-items-center">
-                    <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff&size=40"
-                        class="rounded-circle me-3" width="40" height="40" alt="User Avatar">
-                    <div>
-                        <div class="fw-semibold text-white small">{{ current_user.name }}</div>
-                        <div class="text-secondary" style="font-size:0.72rem;">{{ current_user.role|capitalize }}</div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff&size=40"
+                            class="rounded-circle me-3 flex-shrink-0" width="40" height="40" alt="User Avatar">
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-white small text-truncate">{{ current_user.name }}</div>
+                            <div class="text-secondary overflow-hidden text-truncate" style="font-size:0.72rem;">{{ current_user.role|capitalize }}</div>
+                        </div>
                     </div>
+                    <button class="btn btn-sm btn-outline-light border-0 px-2 flex-shrink-0" id="theme-toggle" title="Toggle Theme">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Page Content -->
         <div id="page-content-wrapper" class="w-100 bg-light">
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-2 sticky-top">
-                <div class="container-fluid p-0">
-                    <button class="btn btn-outline-secondary d-none d-md-inline-block" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <!-- Mobile Brand -->
-                    <div class="d-flex d-md-none align-items-center">
-                        <i class="fas fa-university text-primary me-2"></i>
-                        <span class="fw-bold h5 mb-0">CCCS</span>
-                    </div>
-
-                    <div class="ms-auto d-flex align-items-center gap-2">
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle d-flex align-items-center border-0 bg-transparent px-2" type="button"
-                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=2563EB&color=fff"
-                                    width="32" height="32" class="rounded-circle shadow-sm" alt="User">
-                                <span class="fw-bold text-dark d-none d-sm-inline ms-2">{{ current_user.name }}</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
-                                <li class="px-3 py-2">
-                                    <div class="fw-bold small">{{ current_user.name }}</div>
-                                    <div class="text-secondary smaller text-truncate" style="max-width: 150px;">{{ current_user.email }}</div>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('home') }}"><i class="fas fa-home me-2"></i>Home</a></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
-                        </div>
+            <!-- Mobile/Toggle controls -->
+            <div class="px-4 pt-4 d-flex align-items-center gap-3">
+                <button class="btn btn-white shadow-sm border rounded-3 p-0 d-flex align-items-center justify-content-center" id="menu-toggle" style="width: 42px; height: 42px;">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="d-md-none ms-1">
+                    <div class="fw-bold text-primary">
+                        <i class="fas fa-university me-1"></i>CCCS
                     </div>
                 </div>
-            </nav>
+            </div>
 
-            <!-- Bottom Nav for Mobile -->
-            <nav class="bottom-nav d-md-none">
-                {% if current_user.role == 'student' %}
-                <a href="{{ url_for('student_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('submit_complaint') }}" class="bottom-nav-item {% if request.endpoint == 'submit_complaint' %}active{% endif %}">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Submit</span>
-                </a>
-                <a href="{{ url_for('student_all_complaints') }}" class="bottom-nav-item {% if request.endpoint == 'student_all_complaints' %}active{% endif %}">
-                    <i class="fas fa-globe"></i>
-                    <span>Issues</span>
-                </a>
-                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Notices</span>
-                </a>
-
-                {% elif current_user.role == 'complaint_staff' %}
-                <a href="{{ url_for('staff_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'staff_dashboard' %}active{% endif %}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
-                    <i class="fas fa-users"></i>
-                    <span>Students</span>
-                </a>
-                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Notices</span>
-                </a>
-
-                {% elif current_user.role == 'notice_staff' %}
-                <a href="{{ url_for('notice_staff_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'notice_staff_dashboard' %}active{% endif %}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Notices</span>
-                </a>
-                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
-                    <i class="fas fa-users"></i>
-                    <span>Students</span>
-                </a>
-
-                {% elif current_user.role == 'principal' %}
-                <a href="{{ url_for('principal_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'principal_dashboard' %}active{% endif %}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ url_for('view_all_students') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_students' %}active{% endif %}">
-                    <i class="fas fa-users"></i>
-                    <span>Students</span>
-                </a>
-                <a href="{{ url_for('view_all_notices') }}" class="bottom-nav-item {% if request.endpoint == 'view_all_notices' %}active{% endif %}">
-                    <i class="fas fa-bullhorn"></i>
-                    <span>Notices</span>
-                </a>
-                <a href="{{ url_for('principal_analytics') }}" class="bottom-nav-item {% if request.endpoint == 'principal_analytics' %}active{% endif %}">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Data</span>
-                </a>
-
-                {% elif current_user.role == 'admin' %}
-                <a href="{{ url_for('admin_dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                    <i class="fas fa-user-shield"></i>
-                    <span>Admin</span>
-                </a>
-                {% endif %}
-                
-                <a href="#" class="bottom-nav-item" onclick="document.getElementById('wrapper').classList.toggle('toggled'); return false;">
-                    <i class="fas fa-ellipsis-h"></i>
-                    <span>More</span>
-                </a>
-            </nav>
 
             <div class="container-fluid p-3 p-md-4 dashboard-content">
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -275,17 +180,7 @@
 
     {% else %}
     <!-- Guest -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-2 sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="{{ url_for('home') }}">
-                <i class="fas fa-university me-2"></i>CCCS
-            </a>
-            <div class="ms-auto d-flex gap-2">
-                <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-sm btn-primary rounded-pill px-3">Register</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Guest - No Navbar (Access via buttons on Home page) -->
     <div class="bg-watermark"></div>
     <div class="container mt-4 pb-5">
 
@@ -310,7 +205,7 @@
     <script>
         const wrapper = document.getElementById("wrapper");
         const menuToggle = document.getElementById("menu-toggle");
-        
+
         if (menuToggle && wrapper) {
             menuToggle.addEventListener("click", function (e) {
                 e.preventDefault();
@@ -318,16 +213,48 @@
             });
         }
 
+        // Auto-close sidebar when a link is clicked on mobile
+        const sidebarLinks = document.querySelectorAll("#sidebar-wrapper .list-group-item");
+        sidebarLinks.forEach(link => {
+            link.addEventListener("click", () => {
+                if (window.innerWidth < 768 && wrapper.classList.contains("toggled")) {
+                    wrapper.classList.remove("toggled");
+                }
+            });
+        });
+
         // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const sidebar = document.getElementById('sidebar-wrapper');
             if (!sidebar || !wrapper || !menuToggle) return; // Fix null exception on guest page
-            
+
             const isClickInsideSidebar = sidebar.contains(event.target);
             const isClickOnToggle = menuToggle.contains(event.target);
-            
+
             if (window.innerWidth < 768 && wrapper.classList.contains('toggled') && !isClickInsideSidebar && !isClickOnToggle) {
                 wrapper.classList.remove('toggled');
+            }
+        });
+        // Theme Switching Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
             }
         });
     </script>
